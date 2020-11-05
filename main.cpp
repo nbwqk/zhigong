@@ -376,7 +376,207 @@ public:
         system("cls");
     }
 
-    //
+    //修改职工
+    void Mod_Emp()
+    {
+        if(this->m_FileIsEmpty)
+        {
+            cout<<"文件不存在或者文件数据为空"<<endl;
+        } else{
+            cout<<"请输入修改的职工编号："<<endl;
+            int id;
+            cin>>id;
+
+            int ret=this->IsExist(id);
+            if(ret!=-1)
+            {
+                //查找到编号的职工
+                delete this->m_EmpArray[ret];
+
+                int newId;
+                string newName;
+                int dSelect;
+
+                cout<<"查到："<<id<<"号职工，请输入新职工号："<<endl;
+                cin>>newId;
+
+                cout<<"请输入新姓名："<<endl;
+                cin>>newName;
+
+                cout<<"请输入新的岗位编号："<<endl;
+                cout<<"1.普通职工"<<endl;
+                cout<<"2.经理"<<endl;
+                cout<<"3.老板"<<endl;
+                cin>>dSelect;
+
+                Worker * worker=NULL;
+                switch (dSelect) {
+                    case 1:
+                        worker=new Employee(newId,newName,dSelect);
+                        break;
+                    case 2:
+                        worker=new Manager(newId,newName,dSelect);
+                        break;
+                    case 3:
+                        worker=new Boss(newId,newName,dSelect);
+                        break;
+                    default:
+                        break;
+                }
+                this->m_EmpArray[ret]=worker;
+                this->save();
+            } else{
+                cout<<"查无此人"<<endl;
+            }
+        }
+        system("pause");
+        system("cls");
+    }
+
+    void Find_Emp()
+    {
+        if(this->m_FileIsEmpty)
+        {
+            cout<<"文件为空或记录不存在"<<endl;
+        }
+        else{
+            cout<<"请输入查找的方式："<<endl;
+            cout<<"1.按照职工的编号查找"<<endl;
+            cout<<"2.按照职工的姓名查找"<<endl;
+
+            int select;
+            cin>>select;
+
+            if(select==1)
+            {
+                cout<<"请输入查找的编号："<<endl;
+                int id;
+                cin>>id;
+
+                int ret=this->IsExist(id);
+                if(ret!=-1)
+                {
+                    cout<<"查找成功，该职工的信息如下："<<endl;
+                    this->m_EmpArray[ret]->showInfo();
+                } else{
+                    cout<<"查找失败，查无此人"<<endl;
+                }
+            }
+            else if(select==2)
+            {
+                string name;
+                cout<<"请输入查找的姓名："<<endl;
+                cin>>name;
+
+                bool flag=false;
+                for(int i=0;i<m_EmpNum;i++)
+                {
+                    if(this->m_EmpArray[i]->m_Name==name)
+                    {
+                         cout<<"查找成功，该职工编号为："
+                             <<this->m_EmpArray[i]->m_Id
+                             <<"号职工信息如下："<<endl;
+                         this->m_EmpArray[i]->showInfo();
+                         flag=true;
+                    }
+                }
+                if(flag==false)
+                {
+                    cout<<"查找失败，查无此人"<<endl;
+                }
+            }
+            else
+            {
+              cout<<"输入的选项有误"<<endl;
+            }
+        }
+        system("pause");
+        system("cls");
+    }
+
+    void Sort_Emp()
+    {
+        if(this->m_FileIsEmpty)
+        {
+            cout<<"文件不存在或数据为空"<<endl;
+            system("pause");
+            system("cls");
+        } else{
+            cout<<"请选择排序方式："<<endl;
+            cout<<"1.按职工号升序排列"<<endl;
+            cout<<"2.按职工号降序排列"<<endl;
+
+            int select;
+            cin>>select;
+
+            for(int i=0;i<m_EmpNum;i++)
+            {
+                int minOrmax=i; //声明最小值或最大值下标
+                for(int j=i+1;j<m_EmpNum;j++)
+                {
+                    if(select==1) //升序
+                    {
+                        if(this->m_EmpArray[minOrmax]->m_Id > this->m_EmpArray[j]->m_Id)
+                        {
+                            minOrmax=j;
+                        }
+                    } else{
+                        if(this->m_EmpArray[minOrmax]->m_Id < this->m_EmpArray[j]->m_Id)
+                        {
+                            minOrmax=j;
+                        }
+                    }
+                }
+                if(i!=minOrmax)
+                {
+                    Worker *temp=this->m_EmpArray[i];
+                    this->m_EmpArray[i]=this->m_EmpArray[minOrmax];
+                    this->m_EmpArray[minOrmax]=temp;
+                }
+            }
+            cout<<"排序成功，排序后的结果为："<<endl;
+            this->save();
+            this->show_Emp();
+        }
+    }
+
+    void Clean_File()
+    {
+        cout<<"确定清空吗？"<<endl;
+        cout<<"1.确定"<<endl;
+        cout<<"2.返回"<<endl;
+
+        int select;
+        cin>>select;
+
+        if(select==1)
+        {
+            //清空文件
+            ofstream ofs(FILENAME,ios::trunc); // 删除文件后重新创建
+            ofs.close();
+
+            if(this->m_EmpArray!=NULL)
+            {
+                // 删除堆区的每个职工对象
+                for(int i=0;i<this->m_EmpNum;i++)
+                {
+                    delete this->m_EmpArray[i];
+                    this->m_EmpArray[i]=NULL;
+                }
+
+                // 删除堆区数组指针
+                delete [] this->m_EmpArray;
+                this->m_EmpArray=NULL;
+                this->m_EmpNum=0;
+                this->m_FileIsEmpty= true;
+            }
+            cout<<"清空成功"<<endl;
+        }
+        system("pause");
+        system("cls");
+    }
+
+    //判断职工是否存在，存在返回id
     int IsExist(int id)
     {
         int index=-1;
@@ -391,6 +591,7 @@ public:
         return index;
 
     }
+
     void exitsystem()
     {
         cout<<"欢迎下次再来。"<<endl;
@@ -436,12 +637,16 @@ int main() {
             wm.Del_Emp();
             break;
         case 4:
+            wm.Mod_Emp();
             break;
         case 5:
+            wm.Find_Emp();
             break;
         case 6:
+            wm.Sort_Emp();
             break;
         case 7:
+            wm.Clean_File();
             break;
         default:
             system("cls");
